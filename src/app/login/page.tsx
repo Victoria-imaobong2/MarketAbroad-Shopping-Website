@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ShieldCheck, ArrowRight, Lock, Mail } from "lucide-react";
+import { ShieldCheck, ArrowRight, Lock, Mail, ViewIcon } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -76,6 +76,7 @@ export default function LoginPage() {
                 className="w-full text-xs pl-9 pr-3 py-2.5 border border-slate-300 rounded-lg outline-none focus:border-blue-600"
               />
             </div>
+            <ViewIcon className="absolute right-3 top-2.5 text-slate-400 cursor-pointer" size={16} />
           </div>
 
           <button
