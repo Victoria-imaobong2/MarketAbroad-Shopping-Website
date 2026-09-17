@@ -4,8 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import DeliveryBanner from "@/components/DeliveryBanner";
 import WhatsAppModal from "@/components/WhatsappModal";
-
-const inter = Inter({ subsets: ["latin"] });
+import BottomNav from "@/components/BottomNav";const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "MarketAbroad | Fast Delivery Marketplace",
@@ -25,7 +24,9 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <WhatsAppModal />
+        <BottomNav/>
       </body>
     </html>
   );
+  
 }
