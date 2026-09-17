@@ -7,11 +7,12 @@ import WhatsAppModal from "@/components/WhatsappModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "MarketAbroad | Same Day Delivery Marketplace",
-  description: "Browse products and order with proof-of-delivery guarantee.",
+export const metadata = {
+  title: "MarketAbroad | Fast Delivery Marketplace",
+  description: "Express same-day and standard parcel delivery marketplace.",
+  manifest: "/manifest.json",
+  themeColor: "#2563eb",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
