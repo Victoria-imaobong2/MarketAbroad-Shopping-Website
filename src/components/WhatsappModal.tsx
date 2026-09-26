@@ -11,7 +11,7 @@ export default function WhatsAppModal() {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-emerald-700 transition"
+      className="fixed bottom-26 right-6 z-50 flex items-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-emerald-700 transition"
       aria-label="Chat on WhatsApp"
     >
       <MessageCircle size={20} />
