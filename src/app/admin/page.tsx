@@ -1,25 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, FormEvent } from "react";
-import { 
-  Package, 
-  ShoppingBag, 
-  PlusCircle, 
-  Search, 
-  ArrowUpDown, 
-  CheckCircle2, 
-  Clock, 
-  Truck, 
-  AlertCircle 
-} from "lucide-react";
+import { useState, useEffect, useMemo, type SubmitEvent } from "react";
+import { PlusCircle, Search } from "lucide-react";
 
 interface Product {
   id: string;
-  name: string;
+  title: string;
   price: number;
-  category: string;
   stock: number;
-  imageUrl?: string;
+  description?: string;
+  images?: string[];
 }
 
 interface Order {
@@ -29,8 +19,9 @@ interface Order {
   customerEmail?: string;
   customerPhone?: string;
   createdAt: string;
-  items?: Array<{ id: string; product: { name: string }; quantity: number }>;
 }
+
+type SortOption = "date-desc" | "date-asc" | "amount-high" | "amount-low";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"products" | "orders" | "add-product">("products");
@@ -38,23 +29,21 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter & Sort States
+  // Filters & Sorting
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "amount-high" | "amount-low">("date-desc");
+  const [sortBy, setSortBy] = useState<SortOption>("date-desc");
 
-  // New Product Form State
+  // Form state
   const [formData, setFormData] = useState({
-    name: "",
+    title: "",
     description: "",
     price: "",
-    category: "Groceries",
     stock: "",
     imageUrl: "",
   });
 
-  const fetchData = async () => {
-    setLoading(true);
+  const refreshData = async () => {
     try {
       const [prodRes, orderRes] = await Promise.all([
         fetch("/api/admin/products"),
@@ -64,39 +53,65 @@ export default function AdminDashboard() {
       if (prodRes.ok) setProducts(await prodRes.json());
       if (orderRes.ok) setOrders(await orderRes.json());
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error("Failed to refresh dashboard:", err);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    let ignore = false;
+
+    async function initialFetch() {
+      try {
+        const [prodRes, orderRes] = await Promise.all([
+          fetch("/api/admin/products"),
+          fetch("/api/admin/orders"),
+        ]);
+
+        if (ignore) return;
+        if (prodRes.ok) setProducts(await prodRes.json());
+        if (orderRes.ok) setOrders(await orderRes.json());
+      } catch (err) {
+        console.error("Dashboard initial load failed:", err);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initialFetch();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  const handleCreateProduct = async (e: FormEvent) => {
+  const handleCreateProduct = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock, 10),
+          title: formData.title,
+          description: formData.description,
+          price: Number.parseFloat(formData.price),
+          stock: Number.parseInt(formData.stock, 10),
+          imageUrl: formData.imageUrl,
         }),
       });
 
       if (res.ok) {
-        alert("Product added successfully!");
-        setFormData({ name: "", description: "", price: "", category: "Groceries", stock: "", imageUrl: "" });
+        alert("Product published successfully!");
+        setFormData({ title: "", description: "", price: "", stock: "", imageUrl: "" });
         setActiveTab("products");
-        fetchData();
+        refreshData();
       } else {
-        alert("Failed to add product.");
+        const data = await res.json();
+        alert(data.error || "Failed to add product.");
       }
     } catch {
-      alert("Error adding product.");
+      alert("Error saving product.");
     }
   };
 
@@ -115,13 +130,12 @@ export default function AdminDashboard() {
     }
   };
 
-  // Filtered & Sorted Orders
   const filteredOrders = useMemo(() => {
     return orders
       .filter((order) => {
         const matchesSearch =
           order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (order.customerEmail && order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()));
+          Boolean(order.customerEmail?.toLowerCase().includes(searchQuery.toLowerCase()));
         const matchesStatus = statusFilter === "ALL" || order.status === statusFilter;
         return matchesSearch && matchesStatus;
       })
@@ -142,9 +156,9 @@ export default function AdminDashboard() {
           <p className="text-xs text-slate-500">Manage store catalogue, track shipments, and oversee orders</p>
         </div>
 
-        {/* Tab Navigation */}
         <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
           <button
+            type="button"
             onClick={() => setActiveTab("products")}
             className={`px-4 py-2 rounded-lg transition ${
               activeTab === "products" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-900"
@@ -153,6 +167,7 @@ export default function AdminDashboard() {
             Products ({products.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("orders")}
             className={`px-4 py-2 rounded-lg transition ${
               activeTab === "orders" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-900"
@@ -161,6 +176,7 @@ export default function AdminDashboard() {
             Orders ({orders.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("add-product")}
             className={`px-4 py-2 rounded-lg transition flex items-center gap-1.5 ${
               activeTab === "add-product" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
@@ -171,14 +187,12 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* PRODUCTS TAB */}
       {activeTab === "products" && (
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-medium">
-                <th className="p-4">Product Name</th>
-                <th className="p-4">Category</th>
+                <th className="p-4">Title</th>
                 <th className="p-4">Price</th>
                 <th className="p-4">Stock</th>
               </tr>
@@ -186,8 +200,7 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-slate-100">
               {products.map((prod) => (
                 <tr key={prod.id} className="hover:bg-slate-50 transition">
-                  <td className="p-4 font-semibold text-slate-800">{prod.name}</td>
-                  <td className="p-4 text-slate-500">{prod.category}</td>
+                  <td className="p-4 font-semibold text-slate-800">{prod.title}</td>
                   <td className="p-4 font-medium text-slate-900">₦{prod.price.toLocaleString()}</td>
                   <td className="p-4">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
@@ -200,7 +213,7 @@ export default function AdminDashboard() {
               ))}
               {products.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-400">
+                  <td colSpan={3} className="p-8 text-center text-slate-400">
                     No products found. Add your first item using the button above.
                   </td>
                 </tr>
@@ -210,10 +223,8 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ORDERS TAB */}
       {activeTab === "orders" && (
         <div className="space-y-4">
-          {/* Controls */}
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
@@ -228,6 +239,7 @@ export default function AdminDashboard() {
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <select
+                aria-label="Filter orders by status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="text-xs border border-slate-200 rounded-lg px-3 py-2 outline-none"
@@ -240,8 +252,9 @@ export default function AdminDashboard() {
               </select>
 
               <select
+                aria-label="Sort orders"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="text-xs border border-slate-200 rounded-lg px-3 py-2 outline-none"
               >
                 <option value="date-desc">Newest First</option>
@@ -265,39 +278,43 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50 transition">
-                    <td className="p-4 font-mono font-medium text-slate-700">{order.id.slice(-8)}</td>
-                    <td className="p-4 text-slate-600">{order.customerEmail || "Guest"}</td>
-                    <td className="p-4 font-semibold text-slate-900">₦{order.total.toLocaleString()}</td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                        order.status === "PAID"
-                          ? "bg-blue-50 text-blue-700"
-                          : order.status === "DELIVERED"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-amber-50 text-amber-700"
-                      }`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-500">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 text-right">
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                        className="text-[11px] border border-slate-200 rounded px-2 py-1 outline-none"
-                      >
-                        <option value="PENDING">Mark Pending</option>
-                        <option value="PAID">Mark Paid</option>
-                        <option value="SHIPPED">Mark Shipped</option>
-                        <option value="DELIVERED">Mark Delivered</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
+                {filteredOrders.map((order) => {
+                  const statusBadgeColor =
+                    order.status === "PAID"
+                      ? "bg-blue-50 text-blue-700"
+                      : order.status === "DELIVERED"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-amber-50 text-amber-700";
+
+                  return (
+                    <tr key={order.id} className="hover:bg-slate-50 transition">
+                      <td className="p-4 font-mono font-medium text-slate-700">{order.id.slice(-8)}</td>
+                      <td className="p-4 text-slate-600">{order.customerEmail || "Guest"}</td>
+                      <td className="p-4 font-semibold text-slate-900">₦{order.total.toLocaleString()}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${statusBadgeColor}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-500">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 text-right">
+                        <select
+                          aria-label={`Update status for order ${order.id}`}
+                          value={order.status}
+                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
+                          className="text-[11px] border border-slate-200 rounded px-2 py-1 outline-none"
+                        >
+                          <option value="PENDING">Mark Pending</option>
+                          <option value="PAID">Mark Paid</option>
+                          <option value="SHIPPED">Mark Shipped</option>
+                          <option value="DELIVERED">Mark Delivered</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {filteredOrders.length === 0 && !loading && (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-slate-400">
@@ -311,27 +328,32 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ADD PRODUCT FORM */}
       {activeTab === "add-product" && (
         <div className="max-w-xl bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h2 className="text-base font-bold text-slate-900 mb-4">Add Item to Catalog</h2>
           <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Product Title</label>
+              <label htmlFor="product-title" className="block font-semibold text-slate-700 mb-1">
+                Product Title
+              </label>
               <input
+                id="product-title"
                 required
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Groundnut Oil 5L"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g. Traditional Palm Oil 5L"
                 className="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-blue-600"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Price (₦)</label>
+                <label htmlFor="product-price" className="block font-semibold text-slate-700 mb-1">
+                  Price (₦)
+                </label>
                 <input
+                  id="product-price"
                   required
                   type="number"
                   value={formData.price}
@@ -342,8 +364,11 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Initial Stock</label>
+                <label htmlFor="product-stock" className="block font-semibold text-slate-700 mb-1">
+                  Initial Stock
+                </label>
                 <input
+                  id="product-stock"
                   required
                   type="number"
                   value={formData.stock}
@@ -355,22 +380,11 @@ export default function AdminDashboard() {
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Category</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full p-2.5 border border-slate-200 rounded-lg outline-none"
-              >
-                <option value="Groceries">Groceries</option>
-                <option value="Spices">Spices</option>
-                <option value="Haircare">Haircare</option>
-                <option value="Textiles">Textiles</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Image URL (Optional)</label>
+              <label htmlFor="product-image" className="block font-semibold text-slate-700 mb-1">
+                Image URL (Optional)
+              </label>
               <input
+                id="product-image"
                 type="url"
                 value={formData.imageUrl}
                 onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
@@ -380,12 +394,15 @@ export default function AdminDashboard() {
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">Description</label>
+              <label htmlFor="product-desc" className="block font-semibold text-slate-700 mb-1">
+                Description
+              </label>
               <textarea
+                id="product-desc"
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Provide details on pack size, origin, shelf life..."
+                placeholder="Details on pack size, origin, shelf life..."
                 className="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-blue-600"
               />
             </div>

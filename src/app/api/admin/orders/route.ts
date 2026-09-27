@@ -16,17 +16,10 @@ export async function GET() {
   try {
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
     });
-
     return NextResponse.json(orders);
-  } catch (error) {
+  } catch (err) {
+    console.error("Orders fetch error:", err);
     return NextResponse.json({ error: "Failed to load orders" }, { status: 500 });
   }
 }
@@ -45,7 +38,8 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch (err) {
+    console.error("Order patch error:", err);
     return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
   }
 }
