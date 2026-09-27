@@ -12,7 +12,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="font-extrabold text-xl tracking-tight text-slate-900">
-          Market<span className="text-blue-600">Abroad</span>
+          Realms <span className="text-blue-600"> Gifts</span>
         </Link>
 
         <div className="flex items-center gap-4 sm:gap-6">
