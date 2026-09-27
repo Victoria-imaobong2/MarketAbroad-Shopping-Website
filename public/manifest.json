@@ -1,7 +1,7 @@
 {
-  "name": "MarketAbroad Marketplace",
-  "short_name": "MarketAbroad",
-  "description": "Fast e-commerce marketplace with 24-hour cutoff delivery",
+  "name": "Realms Gift Marketplace",
+  "short_name": "Realms Gift",
+  "description": "Fast e-commerce worldwide marketplace with 24-hour cutoff delivery",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,7 +10,8 @@
     {
       "src": "/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

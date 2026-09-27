@@ -13,7 +13,10 @@ export async function POST(req: Request) {
   const hash = crypto.createHmac("sha512", secret).update(body).digest("hex");
 
   if (hash !== signature) {
-    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Invalid webhook signature" },
+      { status: 401 },
+    );
   }
 
   const event = JSON.parse(body);
@@ -34,7 +37,7 @@ export async function POST(req: Request) {
       // Send transactional confirmation via Resend
       try {
         await resend.emails.send({
-          from: "MarketAbroad <onboarding@resend.dev>",
+          from: "Realms Gift <onboarding@resend.dev>",
           to: customer.email,
           subject: `Payment Confirmed: Order #${orderId}`,
           html: `

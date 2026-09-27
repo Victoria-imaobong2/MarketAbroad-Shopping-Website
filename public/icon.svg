@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Rounded App Background -->
+  <rect width="512" height="512" rx="112" fill="#2563EB"/>
+  
+  <!-- Subtle Globe Latitude & Longitude Lines -->
+  <circle cx="256" cy="256" r="180" stroke="#60A5FA" stroke-width="14" stroke-opacity="0.35"/>
+  <ellipse cx="256" cy="256" rx="90" ry="180" stroke="#60A5FA" stroke-width="14" stroke-opacity="0.35"/>
+  <line x1="76" y1="256" x2="436" y2="256" stroke="#60A5FA" stroke-width="14" stroke-opacity="0.35"/>
+  <line x1="106" y1="170" x2="406" y2="170" stroke="#60A5FA" stroke-width="12" stroke-opacity="0.25"/>
+  <line x1="106" y1="342" x2="406" y2="342" stroke="#60A5FA" stroke-width="12" stroke-opacity="0.25"/>
+
+  <!-- Shopping Bag Body -->
+  <path d="M144 200C144 186.745 154.745 176 168 176H344C357.255 176 368 186.745 368 200L388 408C388 421.255 377.255 432 364 432H148C134.745 432 124 421.255 124 408L144 200Z" fill="#FFFFFF"/>
+
+  <!-- Bag Handles -->
+  <path d="M196 186V144C196 110.863 222.863 84 256 84C289.137 84 316 110.863 316 144V186" stroke="#FFFFFF" stroke-width="28" stroke-linecap="round"/>
+
+  <!-- Gift Ribbon on Bag -->
+  <path d="M256 176V432" stroke="#EF4444" stroke-width="24"/>
+  <path d="M136 294H376" stroke="#EF4444" stroke-width="24"/>
+
+  <!-- Golden Gift Bow -->
+  <circle cx="256" cy="294" r="22" fill="#F59E0B"/>
+  <path d="M256 294C240 260 196 264 212 290C224 306 256 294 256 294Z" fill="#F59E0B"/>
+  <path d="M256 294C272 260 316 264 300 290C288 306 256 294 256 294Z" fill="#F59E0B"/>
+
+  <!-- Orbiting Delivery Airplane / Arrow -->
+  <g transform="translate(360, 110) rotate(35)">
+    <path d="M0 0 L40 18 L0 36 L10 18 Z" fill="#FCD34D"/>
+  </g>
+</svg>

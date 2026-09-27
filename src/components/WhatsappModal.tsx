@@ -4,7 +4,7 @@ import { MessageCircle } from "lucide-react";
 
 export default function WhatsAppModal() {
   const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "2340000000000";
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent("Hello! I need support with MarketAbroad.")}`;
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent("Hello! I need support with Realms Gift.")}`;
 
   return (
     <a

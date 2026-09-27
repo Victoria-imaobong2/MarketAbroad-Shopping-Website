@@ -1,82 +1,140 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Zap, Clock, PackageCheck } from "lucide-react";
+import { prisma } from "@/lib/db";
+import { ShoppingBag, ArrowRight, ShieldCheck, Truck, Sparkles } from "lucide-react";
+import ProductSlideCard from "../components/ProductSlideCard";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+interface ProductItem {
+  id: string;
+  title: string;
+  price: number;
+  stock: number;
+  images?: string[];
+}
+
+export default async function HomePage() {
+  let products: ProductItem[] = [];
+
+  try {
+    products = await prisma.product.findMany({
+      where: { stock: { gt: 0 } },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        stock: true,
+        images: true,
+      },
+    });
+  } catch (err) {
+    console.error("Database lookup deferred on homepage:", err);
+  }
+
+  const slidingProducts: ProductItem[] =
+    products.length > 0 ? [...products, ...products] : [];
+
   return (
-    <div className="flex flex-col min-h-[calc(100vh-8rem)]">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50/70 via-white to-white py-16 sm:py-24 border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/80 text-blue-700 text-xs font-semibold mb-6">
-            <Zap size={14} className="fill-blue-600" />
-            24-Hour Guaranteed Cutoff Dispatch
-          </div>
+      <section className="pt-16 pb-12 px-4 sm:px-6 max-w-7xl mx-auto text-center space-y-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
+          <Sparkles size={14} /> Curated Gifts & Authentic Treasures Delivered
+        </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight max-w-3xl mx-auto leading-tight">
-            Premium Essentials Delivered <span className="text-blue-600">Without the Wait</span>
-          </h1>
+        <h1 className="text-4xl sm:text-6xl font-black text-slate-900 tracking-tight max-w-3xl mx-auto leading-tight">
+          Realms Gifts
+        </h1>
 
-          <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Order before the daily 2:00 PM cutoff for express same-day arrival or standard doorstep delivery with real-time digital proof of delivery.
-          </p>
+        <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto">
+          Delight your loved ones across borders. Shop premium gift bundles, curated hampers, everyday favorites, and authentic African essentials with swift international dispatch.
+        </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <Link
-              href="/catalog"
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-sm"
-            >
-              <span>Explore Marketplace</span>
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/profile"
-              className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold px-8 py-3.5 rounded-xl text-sm transition text-center"
-            >
-              Track an Existing Order
-            </Link>
-          </div>
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <Link
+            href="/catalog"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition flex items-center gap-2 shadow-sm"
+          >
+            <span>Explore Gift Catalog</span>
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/cart"
+            className="px-6 py-3 bg-white hover:bg-slate-100 text-slate-800 font-semibold border border-slate-200 rounded-xl text-sm transition flex items-center gap-2"
+          >
+            <ShoppingBag size={16} />
+            <span>View Cart</span>
+          </Link>
         </div>
       </section>
 
-      {/* Value Pillars */}
-      <section className="py-12 sm:py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-start gap-4">
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                <Clock size={24} />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 mb-1">Strict 24h Cutoff</h2>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Automated delivery routing guarantees packages ordered before cutoff are packed and out for delivery same-day.
-                </p>
-              </div>
-            </div>
+      {/* Interactive Infinite Sliding Showcase */}
+      <section className="py-8 bg-white border-y border-slate-200 relative">
+        <div className="max-w-7xl mx-auto px-4 mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Featured Gifts & Packages</h2>
+            <p className="text-xs text-slate-500">Hover over any product to pause the carousel</p>
+          </div>
+          <Link
+            href="/catalog"
+            className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"
+          >
+            See all ({products.length}) <ArrowRight size={12} />
+          </Link>
+        </div>
 
-            <div className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-start gap-4">
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                <ShieldCheck size={24} />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 mb-1">Protected Payments</h2>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Every order is securely processed via Paystack with instant Resend automated email delivery receipts.
-                </p>
-              </div>
+        {slidingProducts.length > 0 ? (
+          <div className="overflow-hidden w-full py-2">
+            <div className="animate-marquee gap-4 px-4">
+              {slidingProducts.map((product, index) => (
+                <ProductSlideCard key={`${product.id}-${index}`} product={product} />
+              ))}
             </div>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-sm text-slate-400">
+            No items available right now. Check back shortly.
+          </div>
+        )}
+      </section>
 
-            <div className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-start gap-4">
-              <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                <PackageCheck size={24} />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 mb-1">Verified Delivery (POD)</h2>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Couriers verify hand-off with digital signature capture and drop-off photo proof directly to your order log.
-                </p>
-              </div>
-            </div>
+      {/* Trust Badges */}
+      <section className="py-12 px-4 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 text-center sm:text-left">
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl flex items-start gap-4">
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+            <Truck size={24} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Worldwide Gift Dispatch</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Carefully wrapped and packed to ensure pristine delivery overseas.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl flex items-start gap-4">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+            <ShieldCheck size={24} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Secure Checkout</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Direct card and mobile payments powered securely via Paystack.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-white border border-slate-200 rounded-2xl flex items-start gap-4">
+          <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+            <Sparkles size={24} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Photo Proof-of-Delivery</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Receive live delivery confirmation photos when your package arrives.
+            </p>
           </div>
         </div>
       </section>
