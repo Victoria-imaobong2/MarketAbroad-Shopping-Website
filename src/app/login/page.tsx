@@ -29,8 +29,9 @@ function LoginFormContent() {
       if (res.ok) {
         const data = await res.json();
         // If it was the admin secret key, send them to /admin unless another redirect was specified
-        if (data.role === "ADMIN" && redirectUrl === "/profile") {
-          router.push("/admin");
+        if (data.role === "ADMIN"){ 
+          window.location.href = "/admin";
+    return;
         } else {
           router.push(redirectUrl);
         }

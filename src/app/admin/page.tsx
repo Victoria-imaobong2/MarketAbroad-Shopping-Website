@@ -42,6 +42,7 @@ export default function AdminDashboard() {
     stock: "",
     imageUrl: "",
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const refreshData = async () => {
     try {
@@ -85,6 +86,25 @@ export default function AdminDashboard() {
       ignore = true;
     };
   }, []);
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // Limit file size to 3MB to keep database payload lightweight
+  if (file.size > 3 * 1024 * 1024) {
+    alert("Image size should be less than 3MB.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const base64String = reader.result as string;
+    setImagePreview(base64String);
+    setFormData((prev) => ({ ...prev, imageUrl: base64String }));
+  };
+  reader.readAsDataURL(file);
+};
 
   const handleCreateProduct = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -350,7 +370,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="product-price" className="block font-semibold text-slate-700 mb-1">
-                  Price (₦)
+                  Price ($)
                 </label>
                 <input
                   id="product-price"
@@ -380,17 +400,80 @@ export default function AdminDashboard() {
             </div>
 
             <div>
-              <label htmlFor="product-image" className="block font-semibold text-slate-700 mb-1">
-                Image URL (Optional)
-              </label>
-              <input
-                id="product-image"
-                type="url"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-blue-600"
-              />
+              <label className="block font-semibold text-slate-700 mb-1">Product Photo</label>
+
+              <div className="space-y-3">
+                {/* File Upload Box */}
+                <div className="flex items-center justify-center w-full">
+                  <label
+                    htmlFor="dropzone-file"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg
+                        className="w-8 h-8 mb-2 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      <p className="text-xs text-slate-500 font-medium">
+                        <span className="font-semibold text-blue-600">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG, or WEBP (Max 2MB)</p>
+                    </div>
+                    <input
+                      id="dropzone-file"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageFileChange}
+                    />
+                  </label>
+                </div>
+
+                {/* Live Preview If File Selected */}
+                {imagePreview && (
+                  <div className="relative w-28 h-28 rounded-xl overflow-hidden border border-slate-200 shadow-xs">
+                    <img
+                      src={imagePreview}
+                      alt="Upload preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview("");
+                        setFormData((prev) => ({ ...prev, imageUrl: "" }));
+                      }}
+                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 text-[10px] shadow"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+
+                {/* Fallback URL Input */}
+                <div>
+                  <span className="text-[11px] text-slate-400 block mb-1">Or paste an online image URL:</span>
+                  <input
+                    type="url"
+                    value={formData.imageUrl.startsWith("data:") ? "" : formData.imageUrl}
+                    onChange={(e) => {
+                      setImagePreview("");
+                      setFormData({ ...formData, imageUrl: e.target.value });
+                    }}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full p-2.5 border border-slate-200 rounded-lg outline-none focus:border-blue-600 text-xs"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>
