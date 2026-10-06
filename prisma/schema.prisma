@@ -12,7 +12,7 @@ model User {
   email     String   @unique
   password  String?
   name      String?
-  role      Role     @default("CUSTOMER")
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
   orders    Order[]
 }
@@ -54,6 +54,7 @@ enum Role {
   USER
   ADMIN
   SUPPORT
+  
 }
 
 enum DeliveryType {
