@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       // Send transactional confirmation via Resend
       try {
         await resend.emails.send({
-          from: "Realms Gift <onboarding@resend.dev>",
+          from: "customer <onboarding@resend.dev>",
           to: customer.email,
           subject: `Payment Confirmed: Order #${orderId}`,
           html: `
